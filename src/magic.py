@@ -101,7 +101,7 @@ class Magic:
         else:
             print '<temoins> missing, researching ...'
             epouse = self.root.find('epouse')
-            m = re.match('\. .s\.: (.*)\(f.', epouse.tail)
+            m = re.match('\. .s\.: (.+?(?<!Dn|Da)\.)', epouse.tail)
             if(m is None):
                 print '<temoins> not found'
             else:
@@ -111,8 +111,40 @@ class Magic:
                 elem.tail = m.string[m.end(1):]
                 self.root._children.insert(3, elem)
                 print '<temoins> found !'
+                temoins = elem
+        self.check_temoin(temoins)
 
+    def check_temoin(self, temoins):
+        more = True
+        current = temoins
+        while(more):
+            if(current.tag == 'temoins'):
+                current = self.search_temoin(temoins)
+            else:
+                current = self.search_temoin(current)
+            if(current is None):
+                more = False
+            else:
+                temoins.append(current)
 
+    def search_temoin(self, node):
+        if(node.tag == 'temoins'):
+            str = node.text
+        else:
+            str = node.tail
+        m = re.match('.*?((Da\.|Dn\.).+?)(y Da\.|y Dn\.|\.)', str)
+        if(m is None):
+            print '<temoin> no more found'
+            return None
+        elem = ET.Element('temoin')
+        elem.text = m.string[m.start(1):m.end(1)]
+        elem.tail = m.string[m.end(1):]
+        if(node.tag == 'temoins'):
+            node.text = m.string[:m.start(1)]
+        else:
+            node.tail = m.string[:m.start(1)]
+        print '<temoin> one more found'
+        return elem
 
 
 
