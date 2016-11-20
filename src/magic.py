@@ -28,6 +28,7 @@ class Magic:
         self.check_date()
         self.check_epoux()
         self.check_epouse()
+        self.check_temoins()
         print self.tostring()
 
     def check_date(self):
@@ -36,15 +37,11 @@ class Magic:
         if(date is not None):
             print '<date> already done'
             return True
-        print '<date> missing, researching potential date'
+        print '<date> missing, researching ...'
         text = self.root.text
         if(text is None):
             print '<date> no text to search for date'
             return False
-
-        # splitted = re.split('(\d{1,2}-\d{1,2}-\d{4})', text)
-        # for i in splitted:
-        #     print i
         m = re.search('(\d{1,2}-\d{1,2}-\d{4})', text)
         if(m is None):
             print '<date> not found'
@@ -64,6 +61,7 @@ class Magic:
         if(epoux is not None):
             print '<epoux> already done'
         else:
+            print '<epoux> missing, researching ...'
             date = self.root.find('date')
             m = re.match(':(.*), con', date.tail)
             if(m is None):
@@ -82,8 +80,9 @@ class Magic:
         if(epouse is not None):
             print '<epouse> already done'
         else:
+            print '<epouse> missing, researching ...'
             epoux = self.root.find('epoux')
-            m = re.match(', con(.*)\. .s\.:', epoux.tail)
+            m = re.match(', con (.*)\. .s\.:', epoux.tail)
             if(m is None):
                 print '<epouse> not found'
             else:
@@ -93,6 +92,26 @@ class Magic:
                 elem.tail = m.string[m.end(1):]
                 self.root._children.insert(2, elem)
                 print '<epouse> found !'
+
+    def check_temoins(self):
+        print '<temoins> checking ...'
+        temoins = self.root.find('temoins')
+        if(temoins is not None):
+            print '<temoins> already done'
+        else:
+            print '<temoins> missing, researching ...'
+            epouse = self.root.find('epouse')
+            m = re.match('\. .s\.: (.*)\(f.', epouse.tail)
+            if(m is None):
+                print '<temoins> not found'
+            else:
+                epouse.tail = m.string[:m.start(1)]
+                elem = ET.Element('temoins')
+                elem.text = m.string[m.start(1):m.end(1)]
+                elem.tail = m.string[m.end(1):]
+                self.root._children.insert(3, elem)
+                print '<temoins> found !'
+
 
 
 
