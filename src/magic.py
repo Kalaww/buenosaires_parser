@@ -27,6 +27,7 @@ class Magic:
         print self.tostring()
         self.check_date()
         self.check_epoux()
+        self.check_epouse()
         print self.tostring()
 
     def check_date(self):
@@ -73,7 +74,25 @@ class Magic:
                 elem.text = m.string[m.start(1):m.end(1)]
                 elem.tail = m.string[m.end(1):]
                 self.root._children.insert(1, elem)
+                print '<epoux> found !'
 
+    def check_epouse(self):
+        print '<epouse> checking ...'
+        epouse = self.root.find('epouse')
+        if(epouse is not None):
+            print '<epouse> already done'
+        else:
+            epoux = self.root.find('epoux')
+            m = re.match(', con(.*)\. .s\.:', epoux.tail)
+            if(m is None):
+                print '<epouse> not found'
+            else:
+                epoux.tail = m.string[:m.start(1)]
+                elem = ET.Element('epouse')
+                elem.text = m.string[m.start(1):m.end(1)]
+                elem.tail = m.string[m.end(1):]
+                self.root._children.insert(2, elem)
+                print '<epouse> found !'
 
 
 
