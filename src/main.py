@@ -20,5 +20,5 @@ def split_acte(acte):
     return [item.strip() for item in re.split(r'y|,|:|con|\. ', acte)]
 
 
-magic = Magic('../data/acte_complete.xml', method='file')
+magic = Magic('../data/acte_raw.xml', method='file')
 magic.run()

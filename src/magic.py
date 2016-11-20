@@ -26,6 +26,7 @@ class Magic:
     def run(self):
         print self.tostring()
         self.check_date()
+        self.check_epoux()
         print self.tostring()
 
     def check_date(self):
@@ -40,18 +41,38 @@ class Magic:
             print '<date> no text to search for date'
             return False
 
-        splitted = re.split('(\d{1,2}-\d{1,2}-\d{4})', text)
-        if(len(splitted) != 3):
-            print '<date> no date found'
+        # splitted = re.split('(\d{1,2}-\d{1,2}-\d{4})', text)
+        # for i in splitted:
+        #     print i
+        m = re.search('(\d{1,2}-\d{1,2}-\d{4})', text)
+        if(m is None):
+            print '<date> not found'
             return False
-        self.root.text = splitted[0]
+        self.root.text = m.string[:m.start(0)]
         elem = ET.Element('date')
-        elem.text = splitted[1]
-        elem.tail = splitted[2]
+        elem.text = m.string[m.start(0):m.end(0)]
+        elem.tail = m.string[m.end(0):]
 
         self.root._children.insert(0, elem)
         print '<date> found !'
         return True
+
+    def check_epoux(self):
+        print '<epoux> checking ...'
+        epoux = self.root.find('epoux')
+        if(epoux is not None):
+            print '<epoux> already done'
+        else:
+            date = self.root.find('date')
+            m = re.match(':(.*), con', date.tail)
+            if(m is None):
+                print '<epoux> not found'
+            else:
+                date.tail = m.string[:m.start(1)]
+                elem = ET.Element('epoux')
+                elem.text = m.string[m.start(1):m.end(1)]
+                elem.tail = m.string[m.end(1):]
+                self.root._children.insert(1, elem)
 
 
 
