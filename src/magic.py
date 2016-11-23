@@ -115,13 +115,6 @@ class Magic:
         self.check_temoin(temoins)
 
     def check_temoin(self, temoins):
-        more = True
-        current = temoins
-        while(more):
-            if(current.tag == 'temoins'):
-                current = self.search_temoin(temoins)
-            else:
-                current = self.search_temoin(current)
             if(current is None):
                 more = False
             else:
