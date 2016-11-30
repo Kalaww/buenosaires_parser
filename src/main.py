@@ -19,13 +19,18 @@ def test_word(word, prenoms, noms):
 
 def extract_train_acte(filename_in, filename_out):
     with open(filename_in, 'r') as fd_in, open(filename_out, 'w+') as fd_out:
-    	for line in fd_in.readlines():
-    		if('<nom>' in line):
-    			fd_out.write(line)
+        for line in fd_in.readlines():
+            if('<nom>' in line):
+                fd_out.write(line)
 
 
 # magic = Magic('../data/acte_raw.xml', method='file')
 # magic.run()
 
+# extract_train_acte('/info/master2/desgrang/buenosaires.xml', 'train_BA.xml')
+
 ex = Extractor('train_BA.xml')
-ex.get_noms()
+train_noms = ex.get_noms()
+train_prenoms = ex.get_prenoms()
+
+print(train_prenoms)
