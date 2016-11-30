@@ -27,9 +27,9 @@ def extract_train_acte(filename_in, filename_out):
 # magic = Magic('../data/acte_raw.xml', method='file')
 # magic.run()
 
-# extract_train_acte('/info/master2/desgrang/buenosaires.xml', 'train_BA.xml')
+extract_train_acte('../test/buenosaires.xml', '../test/train_BA.xml')
 
-ex = Extractor('train_BA.xml')
+ex = Extractor('../test/train_BA.xml')
 train_noms = ex.get_noms()
 train_prenoms = ex.get_prenoms()
 

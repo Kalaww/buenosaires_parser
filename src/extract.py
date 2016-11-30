@@ -18,20 +18,18 @@ class Extractor:
                 self.actes.append(ET.fromstring(line))
 
     def get_noms(self):
-        noms = []
-        for acte in self.actes:
-            for n in self.recursive_search(acte, 'nom'):
-                noms.append(n.strip())
-        print('{} noms found'.format(len(noms)))
-        return noms
+        return self.get_tag_contents('nom')
 
     def get_prenoms(self):
-        prenoms = []
+        return self.get_tag_contents('prenom')
+
+    def get_tag_contents(self, tag):
+        contents = []
         for acte in self.actes:
-            for n in self.recursive_search(acte, 'prenom'):
-                prenoms.append(n.strip())
-        print('{} prenoms found'.format(len(prenoms)))
-        return prenoms
+            for item in self.recursive_search(acte, tag):
+                contents.append(item.strip())
+        print('{} {} found'.format(len(contents), tag))
+        return contents
 
     def recursive_search(self, root, tag):
         texts = []
