@@ -28,7 +28,7 @@ def tag_multiple_actes(filename_in, filename_out):
             n_line += 1
 
 
-logging.basicConfig(filename='../test/log.txt', level=logging.DEBUG, filemode='w')
+logging.basicConfig(filename='../test/log.txt', level=logging.INFO, filemode='w')
 # magic = Magic('../data/acte_raw.xml', method='file')
 # magic.run()
 

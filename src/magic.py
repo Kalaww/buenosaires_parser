@@ -37,7 +37,7 @@ class Magic:
             return
         # logging.debug(self.tostring())
         self.check_date()
-        # self.check_epoux()
+        self.check_epoux()
         # self.check_epouse()
         # self.check_temoins()
         # logging.debug(self.tostring())
@@ -55,7 +55,7 @@ class Magic:
             logging.debug('<date> no text to search for date')
             return False
 
-        m = re.search('((\d{1,2}-\d{1,2}-)?\d{4}):', text)
+        m = re.search('((\d{1,2}-\d{1,2}-)?\d{4}) ?:', text)
         if(m is None):
             logging.debug('<date> not found')
             return False
@@ -71,18 +71,29 @@ class Magic:
     def check_epoux(self):
         logging.debug('<epoux> checking ...')
         epoux = self.root.find('epoux')
+
         if(epoux is not None):
             logging.debug('<epoux> already done')
         else:
             logging.debug('<epoux> missing, researching ...')
             date = self.root.find('date')
-            m = re.match(':(.*), con', date.tail)
+            if(date is None):
+                text = self.root.text
+            else:
+                text = date.tail
+
+            m = re.match('.*: ?(.*?)(,)? con ', text)
             if(m is None):
                 logging.debug('<epoux> not found')
+            else:
+                if(date is None):
+                    self.root.text = m.string[:m.start(1)]
+                else:
+                    date.tail = m.string[:m.start(1)]
                 elem = ET.Element('epoux')
                 elem.text = m.string[m.start(1):m.end(1)]
                 elem.tail = m.string[m.end(1):]
-                self.root._children.insert(1, elem)
+                self.root.insert(1, elem)
                 logging.debug('<epoux> found !')
 
     def check_epouse(self):
