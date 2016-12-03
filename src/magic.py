@@ -1,114 +1,127 @@
 # -*- coding: utf-8 -*-
 import xml.etree.ElementTree as ET
 import re
+import logging
 
 class Magic:
 
     def __init__(self, str, method='text'):
         self.root = None
+        self._stop = False
+        self._original_text = str
         if(method == 'file'):
             self.from_file(str)
         if(method == 'text'):
             self.from_string(str)
 
     def from_file(self, filename):
-        print('loading file {}'.format(filename))
+        logging.debug('loading file %s', 'filename')
         self.root = (ET.parse(filename)).getroot()
 
     def from_string(self, str):
-        print('loading text')
+        logging.debug('loading text')
         str = str.encode('utf-8')
-        self.root = ET.fromstring(str)
+        try:
+            self.root = ET.fromstring(str)
+        except:
+            logging.error("impossible de lire l'XML suivant: %s", str)
+            self._stop = True
 
     def tostring(self):
-        return ET.tostring(self.root, encoding='utf-8', method='xml')
+        if(self._stop):
+            return self._original_text
+        return ET.tostring(self.root, encoding='unicode', method='xml')
 
     def run(self):
-        print(self.tostring())
+        if(self._stop):
+            return
+        # logging.debug(self.tostring())
         self.check_date()
-        self.check_epoux()
-        self.check_epouse()
-        self.check_temoins()
-        print(self.tostring())
+        # self.check_epoux()
+        # self.check_epouse()
+        # self.check_temoins()
+        # logging.debug(self.tostring())
 
     def check_date(self):
-        print('<date> checking ...')
+        logging.debug('<date> checking ...')
         date = self.root.find('date')
         if(date is not None):
-            print('<date> already done')
+            logging.debug('<date> already done')
             return True
-        print('<date> missing, researching ...')
+
+        logging.debug('<date> missing, researching ...')
         text = self.root.text
         if(text is None):
-            print('<date> no text to search for date')
+            logging.debug('<date> no text to search for date')
             return False
-        m = re.search('(\d{1,2}-\d{1,2}-\d{4})', text)
-        if(m is None):
-            print('<date> not found')
-            return False
-        self.root.text = m.string[:m.start(0)]
-        elem = ET.Element('date')
-        elem.text = m.string[m.start(0):m.end(0)]
-        elem.tail = m.string[m.end(0):]
 
-        self.root._children.insert(0, elem)
-        print('<date> found !')
+        m = re.search('((\d{1,2}-\d{1,2}-)?\d{4}):', text)
+        if(m is None):
+            logging.debug('<date> not found')
+            return False
+        self.root.text = m.string[:m.start(1)]
+        elem = ET.Element('date')
+        elem.text = m.string[m.start(1):m.end(1)]
+        elem.tail = m.string[m.end(1):]
+
+        self.root.insert(0, elem)
+        logging.debug('<date> found !')
         return True
 
     def check_epoux(self):
-        print('<epoux> checking ...')
+        logging.debug('<epoux> checking ...')
         epoux = self.root.find('epoux')
         if(epoux is not None):
-            print('<epoux> already done')
+            logging.debug('<epoux> already done')
         else:
-            print('<epoux> missing, researching ...')
+            logging.debug('<epoux> missing, researching ...')
             date = self.root.find('date')
             m = re.match(':(.*), con', date.tail)
             if(m is None):
-                print('<epoux> not found')
+                logging.debug('<epoux> not found')
                 elem = ET.Element('epoux')
                 elem.text = m.string[m.start(1):m.end(1)]
                 elem.tail = m.string[m.end(1):]
                 self.root._children.insert(1, elem)
-                print('<epoux> found !')
+                logging.debug('<epoux> found !')
 
     def check_epouse(self):
-        print('<epouse> checking ...')
+        logging.debug('<epouse> checking ...')
         epouse = self.root.find('epouse')
         if(epouse is not None):
-            print('<epouse> already done')
+            logging.debug('<epouse> already done')
         else:
-            print('<epouse> missing, researching ...')
+            logging.debug('<epouse> missing, researching ...')
             epoux = self.root.find('epoux')
             m = re.match(', con (.*)\. .s\.:', epoux.tail)
             if(m is None):
-                print('<epouse> not found')
+                logging.debug('<epouse> not found')
             else:
                 epoux.tail = m.string[:m.start(1)]
                 elem = ET.Element('epouse')
                 elem.text = m.string[m.start(1):m.end(1)]
                 elem.tail = m.string[m.end(1):]
                 self.root._children.insert(2, elem)
-                print('<epouse> found !')
+                logging.debug('<epouse> found !')
 
     def check_temoins(self):
-        print('<temoins> checking ...')
+        logging.debug('<temoins> checking ...')
         temoins = self.root.find('temoins')
         if(temoins is not None):
-            print('<temoins> already done')
+            logging.debug('<temoins> already done')
         else:
-            print('<temoins> missing, researching ...')
+            logging.debug('<temoins> missing, researching ...')
             epouse = self.root.find('epouse')
             m = re.match('\. .s\.: (.+?(?<!Dn|Da)\.)', epouse.tail)
             if(m is None):
-                print('<temoins> not found')
+                logging.debug('<temoins> not found')
             else:
                 epouse.tail = m.string[:m.start(1)]
                 elem = ET.Element('temoins')
                 elem.text = m.string[m.start(1):m.end(1)]
                 elem.tail = m.string[m.end(1):]
                 self.root._children.insert(3, elem)
-                print('<temoins> found !')
+                logging.debug('<temoins> found !')
                 temoins = elem
         self.check_temoin(temoins)
 
@@ -119,7 +132,7 @@ class Magic:
             temoins.append(current)
         m = re.match('.*?((Da\.|Dn\.).+?)(y Da\.|y Dn\.|\.)', str)
         if(m is None):
-            print('<temoin> no more found')
+            logging.debug('<temoin> no more found')
             return None
         elem = ET.Element('temoin')
         elem.text = m.string[m.start(1):m.end(1)]
@@ -128,7 +141,7 @@ class Magic:
             node.text = m.string[:m.start(1)]
         else:
             node.tail = m.string[:m.start(1)]
-        print('<temoin> one more found')
+        logging.debug('<temoin> one more found')
         return elem
 
 
