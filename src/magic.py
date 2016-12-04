@@ -99,36 +99,6 @@ class Magic:
     def check_epouse(self):
         return self.check_pattern(self.root, 'epouse', ['epoux', 'date'])
 
-    # def check_epouse(self):
-    #     logging.debug('<epouse> checking ...')
-    #     epouse = self.root.find('epouse')
-    #
-    #     if(epouse is not None):
-    #         logging.debug('<epouse> already done')
-    #     else:
-    #         logging.debug('<epouse> missing, researching ...')
-    #         epoux = self.root.find('epoux')
-    #         if(epoux is None):
-    #             date = self.root.find('date')
-    #             if(date is None):
-    #                 text = self.root.text
-    #             else:
-    #                 text = date.tail
-    #         else:
-    #             text = epoux.tail
-    #         m = re.match(', con (.*)\. .s\.:', text)
-    #         if(m is None):
-    #             logging.debug('<epouse> not found')
-    #         else:
-    #             if(epoux is None):
-    #                 date = self.root.find('date')
-    #             epoux.tail = m.string[:m.start(1)]
-    #             elem = ET.Element('epouse')
-    #             elem.text = m.string[m.start(1):m.end(1)]
-    #             elem.tail = m.string[m.end(1):]
-    #             self.root._children.insert(2, elem)
-    #             logging.debug('<epouse> found !')
-    #
     # def check_temoins(self):
     #     logging.debug('<temoins> checking ...')
     #     temoins = self.root.find('temoins')
