@@ -8,7 +8,8 @@ class Magic:
     regex = {
         'date': ('((\d{1,2}-\d{1,2}-)?\d{4}) ?:', 1),
         'epoux': ('(.*: ?|\d+\) )(.*?)(,)? con ', 2),
-        'epouse': (' con (.+?)\.(?<!(Da.|Dn.))', 1)
+        'epouse': (' con (.+?)\.(?<!(Da.|Dn.))', 1),
+        'temoins': ('Ts\.: (.+?)(?<!Dn|Da|\(f)\.', 1)
     }
 
     def __init__(self, str, method='text'):
@@ -45,7 +46,7 @@ class Magic:
         self.check_date()
         self.check_epoux()
         self.check_epouse()
-        # self.check_temoins()
+        self.check_temoins()
         # logging.debug(self.tostring())
 
     def check_pattern(self, root, tag, before=[]):
@@ -91,7 +92,7 @@ class Magic:
         return True
 
     def check_date(self):
-        self.check_pattern(self.root, 'date')
+        return self.check_pattern(self.root, 'date')
 
     def check_epoux(self):
         return self.check_pattern(self.root, 'epoux', ['date'])
@@ -99,26 +100,9 @@ class Magic:
     def check_epouse(self):
         return self.check_pattern(self.root, 'epouse', ['epoux', 'date'])
 
-    # def check_temoins(self):
-    #     logging.debug('<temoins> checking ...')
-    #     temoins = self.root.find('temoins')
-    #     if(temoins is not None):
-    #         logging.debug('<temoins> already done')
-    #     else:
-    #         logging.debug('<temoins> missing, researching ...')
-    #         epouse = self.root.find('epouse')
-    #         m = re.match('\. .s\.: (.+?(?<!Dn|Da)\.)', epouse.tail)
-    #         if(m is None):
-    #             logging.debug('<temoins> not found')
-    #         else:
-    #             epouse.tail = m.string[:m.start(1)]
-    #             elem = ET.Element('temoins')
-    #             elem.text = m.string[m.start(1):m.end(1)]
-    #             elem.tail = m.string[m.end(1):]
-    #             self.root._children.insert(3, elem)
-    #             logging.debug('<temoins> found !')
-    #             temoins = elem
-    #     self.check_temoin(temoins)
+    def check_temoins(self):
+        return self.check_pattern(self.root, 'temoins', ['epouse', 'epoux', 'date'])
+
     #
     # def check_temoin(self, temoins):
     #     if(current is None):
