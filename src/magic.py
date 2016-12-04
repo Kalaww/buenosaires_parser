@@ -7,7 +7,8 @@ class Magic:
 
     regex = {
         'date': ('((\d{1,2}-\d{1,2}-)?\d{4}) ?:', 1),
-        'epoux': ('(.*: ?|\d+\) )(.*?)(,)? con ', 2)
+        'epoux': ('(.*: ?|\d+\) )(.*?)(,)? con ', 2),
+        'epouse': (' con (.+?)\.(?<!(Da.|Dn.))', 1)
     }
 
     def __init__(self, str, method='text'):
@@ -43,7 +44,7 @@ class Magic:
         # logging.debug(self.tostring())
         self.check_date()
         self.check_epoux()
-        # self.check_epouse()
+        self.check_epouse()
         # self.check_temoins()
         # logging.debug(self.tostring())
 
@@ -95,62 +96,8 @@ class Magic:
     def check_epoux(self):
         return self.check_pattern(self.root, 'epoux', ['date'])
 
-
-    # def check_date(self):
-    #     logging.debug('<date> checking ...')
-    #     date = self.root.find('date')
-    #     if(date is not None):
-    #         logging.debug('<date> already done')
-    #         return True
-    #
-    #     logging.debug('<date> missing, researching ...')
-    #     text = self.root.text
-    #     if(text is None):
-    #         logging.debug('<date> no text to search for date')
-    #         return False
-    #
-    #     m = re.search('((\d{1,2}-\d{1,2}-)?\d{4}) ?:', text)
-    #     if(m is None):
-    #         logging.debug('<date> not found')
-    #         return False
-    #     self.root.text = m.string[:m.start(1)]
-    #     elem = ET.Element('date')
-    #     elem.text = m.string[m.start(1):m.end(1)]
-    #     elem.tail = m.string[m.end(1):]
-    #
-    #     self.root.insert(0, elem)
-    #     logging.debug('<date> found !')
-    #     return True
-    #
-    # def check_epoux(self):
-    #     logging.debug('<epoux> checking ...')
-    #     epoux = self.root.find('epoux')
-    #
-    #     if(epoux is not None):
-    #         logging.debug('<epoux> already done')
-    #     else:
-    #         logging.debug('<epoux> missing, researching ...')
-    #         date = self.root.find('date')
-    #         if(date is None):
-    #             text = self.root.text
-    #         else:
-    #             text = date.tail
-    #
-    #         m = re.match('.*: ?(.*?)(,)? con ', text)
-    #         if(m is None):
-    #             logging.debug('<epoux> not found')
-    #         else:
-    #             if(date is None):
-    #                 self.root.text = m.string[:m.start(1)]
-    #             else:
-    #                 date.tail = m.string[:m.start(1)]
-    #             elem = ET.Element('epoux')
-    #             elem.text = m.string[m.start(1):m.end(1)]
-    #             elem.tail = m.string[m.end(1):]
-    #             self.root.insert(1, elem)
-    #             logging.debug('<epoux> found !')
-
-
+    def check_epouse(self):
+        return self.check_pattern(self.root, 'epouse', ['epoux', 'date'])
 
     # def check_epouse(self):
     #     logging.debug('<epouse> checking ...')
