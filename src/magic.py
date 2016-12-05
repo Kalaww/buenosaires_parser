@@ -10,7 +10,7 @@ class Magic:
         'epoux': ('(.*: ?|\d+\) )(.*?)(,)? con ', 2),
         'epouse': (' con (.+?)\.(?<!(Da.|Dn.))', 1),
         'temoins': ('Ts\.: (.+?)((?<!Dn|Da)|, \(f)\.', 1),
-        'naissance-lieu': ('natural del? (.+?)(,|$)', 1)
+        'naissance-lieu': ('natural(es)? del? (.+?)(,|$)', 2)
     }
 
     def __init__(self, str, method='text'):
