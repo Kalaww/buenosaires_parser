@@ -10,7 +10,7 @@ class Magic:
         'epoux': ('(.*: ?|\d+\) )(.*?)(,)? con ', 2),
         'epouse': (' con (.+?)\.(?<!(Da.|Dn.))', 1),
         'temoins': ('Ts\.: (.+?)((?<!Dn|Da)|, \(f)\.', 1),
-        'temoin': ('((Da\.|Dn\.).+?)(y Da\.|y Dn\.|\.)', 1)
+        'temoin': ('(, (y )?)?(.+?)(,( y )?|(?<!Da|Dn)\.)', 3)
     }
 
     def __init__(self, str, method='text'):
@@ -43,12 +43,11 @@ class Magic:
     def run(self):
         if(self._stop):
             return
-        # logging.debug(self.tostring())
+
         self.check_date()
         self.check_epoux()
         self.check_epouse()
         self.check_temoins()
-        # logging.debug(self.tostring())
 
     def check_pattern(self, root, tag, before=[], multiple=False):
         if(not multiple and root.find(tag) is not None):
@@ -104,43 +103,49 @@ class Magic:
     def check_temoins(self):
         self.check_pattern(self.root, 'temoins', ['epouse', 'epoux', 'date'])
 
-        # temoins = self.root.find('temoins')
-        # if(temoins is None):
-        #     return
-        #
-        # position = 0
-        # splitted = temoins.text.split(', y ')
-        # last = None
-        # for i in len(splitted):
-        #     elem = Et.Element('temoin')
-        #     elem.text = splitted[i]
-        #
-        # for item in temoins.text.split(', y '):
-        #     elem = Et.Element('temoin')
-        # while True:
-        #     if(not self.check_pattern(temoins, 'temoin', ['temoin'], multiple=True)):
-        #         break
-    #
-    # def check_temoin(self, temoins):
-    #     if(current is None):
-    #         more = False
-    #     else:
-    #         temoins.append(current)
-    #     m = re.match('.*?((Da\.|Dn\.).+?)(y Da\.|y Dn\.|\.)', str)
-    #     if(m is None):
-    #         logging.debug('<temoin> no more found')
-    #         return None
-    #     elem = ET.Element('temoin')
-    #     elem.text = m.string[m.start(1):m.end(1)]
-    #     elem.tail = m.string[m.end(1):]
-    #     if(node.tag == 'temoins'):
-    #         node.text = m.string[:m.start(1)]
-    #     else:
-    #         node.tail = m.string[:m.start(1)]
-    #     logging.debug('<temoin> one more found')
-    #     return elem
+        temoins = self.root.find('temoins')
+        if(temoins is None):
+            return
 
+        splitted, str = self.split_temoins(temoins.text)
 
+        i = 0
+        size = len(splitted)
+        while True:
+            if(i >= size):
+                break
+            elem = ET.Element('temoin')
+            elem.text = splitted[i]
+            i += 1
+
+            if(i < size):
+                elem.tail = splitted[i]
+                i += 1
+            temoins.append(elem)
+        temoins.text = ''
+
+    def split_temoins(self, str):
+        splitted = []
+        while True:
+            y = str.find(', ')
+            yy = str.find(', y ')
+
+            if(y == -1 and yy == -1):
+                break
+
+            if(yy == y):
+                min = yy
+                max = min + len(', y ')
+            else:
+                min = y
+                max = min + len(', ')
+
+            splitted.append(str[:min])
+            splitted.append(str[min:max])
+            str = str[max:]
+        if(len(str) > 0):
+            splitted.append(str)
+        return splitted, str
 
 
 def extract_actes_from_xml(xml_tree):
