@@ -9,7 +9,8 @@ class Magic:
         'date': ('((\d{1,2}-\d{1,2}-)?\d{4}) ?:', 1),
         'epoux': ('(.*: ?|\d+\) )(.*?)(,)? con ', 2),
         'epouse': (' con (.+?)\.(?<!(Da.|Dn.))', 1),
-        'temoins': ('Ts\.: (.+?)(?<!Dn|Da|\(f)\.', 1)
+        'temoins': ('Ts\.: (.+?)((?<!Dn|Da)|, \(f)\.', 1),
+        'temoin': ('((Da\.|Dn\.).+?)(y Da\.|y Dn\.|\.)', 1)
     }
 
     def __init__(self, str, method='text'):
@@ -49,8 +50,8 @@ class Magic:
         self.check_temoins()
         # logging.debug(self.tostring())
 
-    def check_pattern(self, root, tag, before=[]):
-        if(root.find(tag) is not None):
+    def check_pattern(self, root, tag, before=[], multiple=False):
+        if(not multiple and root.find(tag) is not None):
             return True
 
         target = root
@@ -101,8 +102,24 @@ class Magic:
         return self.check_pattern(self.root, 'epouse', ['epoux', 'date'])
 
     def check_temoins(self):
-        return self.check_pattern(self.root, 'temoins', ['epouse', 'epoux', 'date'])
+        self.check_pattern(self.root, 'temoins', ['epouse', 'epoux', 'date'])
 
+        # temoins = self.root.find('temoins')
+        # if(temoins is None):
+        #     return
+        #
+        # position = 0
+        # splitted = temoins.text.split(', y ')
+        # last = None
+        # for i in len(splitted):
+        #     elem = Et.Element('temoin')
+        #     elem.text = splitted[i]
+        #
+        # for item in temoins.text.split(', y '):
+        #     elem = Et.Element('temoin')
+        # while True:
+        #     if(not self.check_pattern(temoins, 'temoin', ['temoin'], multiple=True)):
+        #         break
     #
     # def check_temoin(self, temoins):
     #     if(current is None):
