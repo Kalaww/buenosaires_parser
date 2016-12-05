@@ -10,7 +10,7 @@ class Magic:
         'epoux': ('(.*: ?|\d+\) )(.*?)(,)? con ', 2),
         'epouse': (' con (.+?)\.(?<!(Da.|Dn.))', 1),
         'temoins': ('Ts\.: (.+?)((?<!Dn|Da)|, \(f)\.', 1),
-        'temoin': ('(, (y )?)?(.+?)(,( y )?|(?<!Da|Dn)\.)', 3)
+        'naissance-lieu': ('natural del? (.+?)(,|$)', 1)
     }
 
     def __init__(self, str, method='text'):
@@ -95,10 +95,22 @@ class Magic:
         return self.check_pattern(self.root, 'date')
 
     def check_epoux(self):
-        return self.check_pattern(self.root, 'epoux', ['date'])
+        self.check_pattern(self.root, 'epoux', ['date'])
+
+        epoux = self.root.find('epoux')
+        if(epoux is None):
+            return
+
+        self.check_pattern(epoux, 'naissance-lieu')
 
     def check_epouse(self):
-        return self.check_pattern(self.root, 'epouse', ['epoux', 'date'])
+        self.check_pattern(self.root, 'epouse', ['epoux', 'date'])
+
+        epouse = self.root.find('epouse')
+        if(epouse is None):
+            return
+
+        self.check_pattern(epouse, 'naissance-lieu')
 
     def check_temoins(self):
         self.check_pattern(self.root, 'temoins', ['epouse', 'epoux', 'date'])
