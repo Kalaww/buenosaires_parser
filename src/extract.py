@@ -17,25 +17,69 @@ class Extractor:
                 line = re.sub(r'\s+', ' ', line).strip()
                 self.actes.append(ET.fromstring(line))
 
-    def get_noms(self):
-        return self.get_tag_contents('nom')
-
-    def get_prenoms(self):
-        return self.get_tag_contents('prenom')
-
-    def get_tag_contents(self, tag):
+    def extract_tag(self, tag, filename=None):
         contents = []
+        fd = None
+        if(filename is not None):
+            fd = open(filename, 'w')
+
         for acte in self.actes:
             for item in self.recursive_search(acte, tag):
-                contents.append(item.strip())
+                contents.append(item)
+                if(fd is not None):
+                    fd.write(item)
+                    fd.write('\n')
         print('{} {} found'.format(len(contents), tag))
         return contents
 
     def recursive_search(self, root, tag):
         texts = []
-        for child in root:
-            if(child.tag == tag):
-                texts.append(child.text)
+        for i in range(0, len(root)):
+            if(root[i].tag == tag):
+                before = None
+                position = i -1
+                while before is None:
+                    if(position < -1):
+                        break
+                    if(position == -1):
+                        before = last_word(root.text)
+                    else:
+                        before = last_word(root[i].tail)
+                        if(before is None):
+                            before = last_word(root[i].text)
+                    position -= 1
+
+                after = None
+                position = i
+                while after is None:
+                    if(position > len(root)):
+                        break
+                    if(position == len(root)):
+                        after = first_word(root.tail)
+                    elif(position == i):
+                        after = first_word(root[i].tail)
+                    else:
+                        after = first_word(root[position].text)
+                        if(after is None):
+                            after = first_word(root[position].tail)
+                    position += 1
+                texts.append((root[i].text, before, after))
             else:
-                texts = texts + self.recursive_search(child, tag)
+                texts = texts + self.recursive_search(root[i], tag)
         return texts
+
+def last_word(str):
+    if(str is None):
+        return None
+    split = str.rsplit(None, 1)
+    if(len(split) > 0):
+        return split[-1]
+    return None
+
+def first_word(str):
+    if(str is None):
+        return None
+    split = str.rsplit(None, 1)
+    if(len(split) > 0):
+        return split[0]
+    return None

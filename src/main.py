@@ -4,12 +4,21 @@
 import re
 from magic import Magic
 from extract import Extractor
+from classifier import Classifier
 import logging
+
+_DIR_DATA = '../test/'
+_BUENOS_AIRES = _DIR_DATA + 'buenosaires.xml'
+_BUENOS_AIRES_TRAIN = _DIR_DATA + 'buenosaires.train.xml'
+_MATRIMONIOS_RAW = _DIR_DATA + 'matrimonios.xml'
+_MATRIMONIOS_TAGGED = _DIR_DATA + 'matrimonios.tagged.xml'
+_LOG_FILE = _DIR_DATA + 'log.txt'
 
 def extract_train_acte(filename_in, filename_out):
     with open(filename_in, 'r') as fd_in, open(filename_out, 'w+') as fd_out:
         for line in fd_in.readlines():
             if('<nom>' in line):
+                line = re.sub('\s\s+', ' ', line)
                 fd_out.write(line)
 
 def tag_multiple_actes(filename_in, filename_out):
@@ -28,16 +37,26 @@ def tag_multiple_actes(filename_in, filename_out):
             n_line += 1
 
 
-logging.basicConfig(filename='../test/log.txt', level=logging.INFO, filemode='w')
-# magic = Magic('../data/acte_raw.xml', method='file')
-# magic.run()
+logging.basicConfig(filename=_LOG_FILE, level=logging.INFO, filemode='w')
 
-# extract_train_acte('../test/buenosaires.xml', '../test/train_BA.xml')
+# extract_train_acte(_BUENOS_AIRES, _BUENOS_AIRES_TRAIN)
 
-# ex = Extractor('../test/train_BA.xml')
-# train_noms = ex.get_noms()
-# train_prenoms = ex.get_prenoms()
-#
-# print(train_prenoms)
+ex = Extractor(_BUENOS_AIRES_TRAIN)
+noms = ex.extract_tag('nom')
+prenoms = ex.extract_tag('prenom')
+conditions = ex.extract_tag('condition')
 
-tag_multiple_actes('../test/matrimonios.num.xml', '../test/matrimonios.date.xml')
+total = noms + prenoms + conditions
+len_noms = len(noms)
+len_total = len(total)
+data_noms = []
+for i in range(0, len_total):
+    if(i < len_noms):
+        data_noms.append((total[i], 'nom'))
+    else:
+        data_noms.append((total[i], 'autre'))
+
+cl = Classifier(data_noms)
+cl.test('nom', verbose=True)
+
+# tag_multiple_actes(_MATRIMONIOS_RAW, _MATRIMONIOS_TAGGED)
