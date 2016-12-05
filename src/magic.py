@@ -10,7 +10,8 @@ class Magic:
         'epoux': ('(.*: ?|\d+\) )(.*?)(,)? con ', 2),
         'epouse': (' con (.+?)\.(?<!(Da.|Dn.))', 1),
         'temoins': ('Ts\.: (.+?)((?<!Dn|Da)|, \(f)\.', 1),
-        'naissance-lieu': ('natural(es)? del? (.+?)(,|$)', 2)
+        'naissance-lieu': ('natural(es)? del? (.+?)(,|$)', 2),
+        'pere/mere': ('hij(o|a)( leg.tim(o|a)| natural)? del? (.+)(?<!,),? y de (.+)(,|$)', (4, 5))
     }
 
     def __init__(self, str, method='text'):
@@ -50,7 +51,7 @@ class Magic:
         self.check_temoins()
 
     def check_pattern(self, root, tag, before=[], multiple=False):
-        if(not multiple and root.find(tag) is not None):
+        if(root.find(tag) is not None):
             return True
 
         target = root
@@ -78,17 +79,41 @@ class Magic:
         if(m is None):
             return False
 
-        i = self.regex[tag][1]
-        if(target is root):
-            target.text = m.string[:m.start(i)]
+        if(multiple):
+            nb_tag = len(self.regex[tag][1])
+            tags = tag.split('/')
+
+            for index in range(0,nb_tag):
+                i = self.regex[tag][1][index]
+                if(index == 0):
+                    before = m.string[:m.start(i)]
+                else:
+                    before = m.string[m.end(self.regex[tag][1][index-1]):m.start(i)]
+                if(target is root):
+                    target.text = before
+                else:
+                    target.tail = before
+
+                elem = ET.Element(tags[index])
+                elem.text = m.string[m.start(i):m.end(i)]
+                elem.tail = m.string[m.end(i):]
+
+                root.insert(position, elem)
+
+                position += 1
+                target = elem
         else:
-            target.tail = m.string[:m.start(i)]
+            i = self.regex[tag][1]
+            if(target is root):
+                target.text = m.string[:m.start(i)]
+            else:
+                target.tail = m.string[:m.start(i)]
 
-        elem = ET.Element(tag)
-        elem.text = m.string[m.start(i):m.end(i)]
-        elem.tail = m.string[m.end(i):]
+            elem = ET.Element(tag)
+            elem.text = m.string[m.start(i):m.end(i)]
+            elem.tail = m.string[m.end(i):]
 
-        root.insert(position, elem)
+            root.insert(position, elem)
         return True
 
     def check_date(self):
@@ -102,6 +127,7 @@ class Magic:
             return
 
         self.check_pattern(epoux, 'naissance-lieu')
+        self.check_pattern(epoux, 'pere/mere', ['naissance-lieu'], multiple=True)
 
     def check_epouse(self):
         self.check_pattern(self.root, 'epouse', ['epoux', 'date'])
@@ -111,6 +137,7 @@ class Magic:
             return
 
         self.check_pattern(epouse, 'naissance-lieu')
+        self.check_pattern(epouse, 'pere/mere', ['naissance-lieu'], multiple=True)
 
     def check_temoins(self):
         self.check_pattern(self.root, 'temoins', ['epouse', 'epoux', 'date'])
