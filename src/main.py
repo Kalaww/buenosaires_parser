@@ -57,6 +57,9 @@ for i in range(0, len_total):
         data_noms.append((total[i], 'autre'))
 
 cl = Classifier(data_noms)
-cl.test('nom', verbose=True)
+cl.setup('nom', method='naive_bayes', verbose=True)
+cl.print_accuracy()
+cl.show_errors()
+cl.print_precision_recall()
 
 # tag_multiple_actes(_MATRIMONIOS_RAW, _MATRIMONIOS_TAGGED)

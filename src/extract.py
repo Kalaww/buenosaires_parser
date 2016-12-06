@@ -63,6 +63,10 @@ class Extractor:
                         if(after is None):
                             after = first_word(root[position].tail)
                     position += 1
+                if(before is None):
+                    before = ''
+                if(after is None):
+                    after = ''
                 texts.append((root[i].text, before, after))
             else:
                 texts = texts + self.recursive_search(root[i], tag)
