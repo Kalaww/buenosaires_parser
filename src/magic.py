@@ -11,7 +11,7 @@ class Magic:
         'epouse': (' con (.+?)\.(?<!(Da.|Dn.))', 1),
         'temoins': ('Ts\.: (.+?)((?<!Dn|Da)|, \(f)\.', 1),
         'naissance-lieu': ('natural(es)? del? (.+?)(,|$)', 2),
-        'pere/mere': ('hij(o|a)( leg.tim(o|a)| natural)? del? (.+)(?<!,),? y de (.+)(,|$)', (4, 5))
+        'pere/mere': ('hij(o|a)( leg.tim(o|a)| natural)? del? (.+)(?<!,),? y de (.+?)(,|$)', (4, 5))
     }
 
     def __init__(self, str, method='text'):
