@@ -51,11 +51,11 @@ class Classifier:
             predicted = self.classifier.classify(ft)
             testset[predicted].add(i)
 
-        target_precision = precision(refset[self.target], testset[self.target])
-        target_recall = recall(refset[self.target], testset[self.target])
+        for tag in refset.keys():
+            prc = precision(refset[tag], testset[tag])
+            rec = recall(refset[tag], testset[tag])
+            print('{}: precision={:4.2f} recall={:4.2f}'.format(tag, prc, rec))
 
-        print('{} precision: {:4.2f}'.format(self.target, target_precision))
-        print('{} recall: {:4.2f}'.format(self.target, target_recall))
 
     def show_errors(self):
         errors = []
@@ -76,6 +76,8 @@ class Classifier:
             features = nom_features
         elif(target == 'prenom'):
             features = prenom_features
+        elif(target == 'condition'):
+            features = condition_features
 
         if(features is None):
             return
@@ -92,15 +94,34 @@ class Classifier:
 
 def nom_features(word):
     return {
-        'before' : word[1],
-        'after' : word[2]
+        'length' : len(word['word']),
+        'before' : word['before'],
+        'after' : word['after'],
+        'n_upper' : ratio_nb_uppercase(word['word']),
+        'after_tag' : word['after_tag'],
+        'before_tag' : word['before_tag']
     }
 
 def prenom_features(word):
     return {
-        'before' : word[1],
-        'after' : word[2]
+        'length' : len(word['word']),
+        'before' : word['before'],
+        'after' : word['after'],
+        'n_upper' : ratio_nb_uppercase(word['word']),
+        'after_tag' : word['after_tag'],
+        'before_tag' : word['before_tag']
+    }
+
+def condition_features(word):
+    return {
+        'before' : word['before'],
+        'after' : word['after'],
+        'after_tag' : word['after_tag'],
+        'before_tag' : word['before_tag']
     }
 
 def ratio_nb_uppercase(word):
     return sum(1 for l in word if l.isupper()) / len(word)
+
+def is_first_uppercase(word):
+    return word[0].isupper()

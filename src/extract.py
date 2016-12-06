@@ -72,6 +72,57 @@ class Extractor:
                 texts = texts + self.recursive_search(root[i], tag)
         return texts
 
+    def extract_personnes_words(self):
+        words = []
+        for acte in self.actes:
+            epoux = acte.find('epoux')
+            if(epoux is not None):
+                words = words + self.personne_words(epoux)
+            epouse = acte.find('epouse')
+            if(epouse is not None):
+                words = words + self.personne_words(epouse)
+            temoins = acte.find('temoins')
+            if(temoins is not None):
+                for temoin in temoins.findall('temoin'):
+                    words = words + self.personne_words(temoin)
+
+        results = []
+        for i, (word, tag) in enumerate(words):
+            before = ''
+            before_tag = 'other'
+            if(i > 0):
+                before = words[i-1][0]
+                before_tag = words[i-1][1]
+            after = ''
+            after_tag = 'other'
+            if(i < len(words)-1):
+                after = words[i+1][0]
+                after_tag = words[i+1][1]
+            results.append(
+                ({
+                'word' : word,
+                'before' : before,
+                'after' : after,
+                'before_tag' : before_tag,
+                'after_tag' : after_tag
+                }, tag)
+            )
+        return results
+
+    def personne_words(self, node):
+        ok = ['nom', 'prenom', 'condition', 'naissance-lieu']
+        words = []
+        if(node.text is not None):
+            words = words + [(word, 'other') for word in node.text.split()]
+        for child in node:
+            if(child.tag is not None and child.tag in ok):
+                words = words + [(word, child.tag) for word in child.text.split()]
+            if(child.tail is not None):
+                words = words + [(word, 'other') for word in child.tail.split()]
+        if(node.tail is not None):
+            words = words + [(word, 'other') for word in node.tail.split()]
+        return words
+
 def last_word(str):
     if(str is None):
         return None

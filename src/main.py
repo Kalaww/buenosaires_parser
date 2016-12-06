@@ -36,30 +36,44 @@ def tag_multiple_actes(filename_in, filename_out):
             fd_out.write("\n")
             n_line += 1
 
+def setup_classifier(target, method='naive_bayes'):
+    ex = Extractor(_BUENOS_AIRES_TRAIN)
+    words = ex.extract_personnes_words()
+
+    for i, item in enumerate(words):
+        if(item[1] != target):
+            words[i] = (item[0], 'other')
+
+    cl = Classifier(words)
+    cl.setup(target, method, verbose=True)
+    cl.print_accuracy()
+    cl.print_precision_recall()
+
 
 logging.basicConfig(filename=_LOG_FILE, level=logging.INFO, filemode='w')
 
 # extract_train_acte(_BUENOS_AIRES, _BUENOS_AIRES_TRAIN)
 
-ex = Extractor(_BUENOS_AIRES_TRAIN)
-noms = ex.extract_tag('nom')
-prenoms = ex.extract_tag('prenom')
-conditions = ex.extract_tag('condition')
+# total = noms + prenoms + conditions
+# len_noms = len(noms)
+# len_total = len(total)
+# data_noms = []
+# for i in range(0, len_total):
+#     if(i < len_noms):
+#         data_noms.append((total[i], 'nom'))
+#     else:
+#         data_noms.append((total[i], 'autre'))
+#
+# cl = Classifier(data_noms)
+# cl.setup('prenom', method='naive_bayes', verbose=True)
+# cl.print_accuracy()
+# cl.show_errors()
+# cl.print_precision_recall()
 
-total = noms + prenoms + conditions
-len_noms = len(noms)
-len_total = len(total)
-data_noms = []
-for i in range(0, len_total):
-    if(i < len_noms):
-        data_noms.append((total[i], 'nom'))
-    else:
-        data_noms.append((total[i], 'autre'))
-
-cl = Classifier(data_noms)
-cl.setup('nom', method='naive_bayes', verbose=True)
-cl.print_accuracy()
-cl.show_errors()
-cl.print_precision_recall()
-
+print("PRENOM")
+setup_classifier('prenom')
+print("\nNOM")
+setup_classifier('nom')
+print("\nCONDITION")
+setup_classifier('condition')
 # tag_multiple_actes(_MATRIMONIOS_RAW, _MATRIMONIOS_TAGGED)
