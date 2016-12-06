@@ -83,7 +83,7 @@ def last_word(str):
 def first_word(str):
     if(str is None):
         return None
-    split = str.rsplit(None, 1)
+    split = str.split(None, 1)
     if(len(split) > 0):
         return split[0]
     return None
