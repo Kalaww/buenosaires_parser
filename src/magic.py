@@ -62,14 +62,14 @@ class Magic:
 
         for person in persons:
             words = person_words(person)
-            for word in words:
+            for i, word in enumerate(words):
                 if word[1] != 'other':
                     continue
-                tag = best_classify(word[0])
-                print('{} -> {}'.format(word[0]['word'], tag))
+                word[1] = best_classify(word[0])
+                if i < len(words) -1 :
+                    words[i+1]['after_tag'] = word[1]
+                print('{} > {}'.format(word[0]['word'], word[1]))
 
-
-        # PLUSIEURS ITERATIONS !
 
 
     def check_pattern(self, root, tag, before=[], multiple=False):
@@ -261,4 +261,3 @@ def best_classify(word):
     if is_nom == 1 :
         return 'nom'
     return 'condition'
-

@@ -156,6 +156,7 @@ def setup_classifier(filename, target, method='linearSVC', verbose=False):
         cl.print_precision_recall()
     return cl
 
-classifier_prenom = setup_classifier(_BUENOS_AIRES_TRAIN, 'prenom', _METHOD_CLASSIFY)
-classifier_nom = setup_classifier(_BUENOS_AIRES_TRAIN, 'nom', _METHOD_CLASSIFY)
-classifier_condition = setup_classifier(_BUENOS_AIRES_TRAIN, 'condition', _METHOD_CLASSIFY)
+def setup_classifiers(f_learning_set):
+    classifier_prenom = setup_classifier(f_learning_set, 'prenom', _METHOD_CLASSIFY)
+    classifier_nom = setup_classifier(f_learning_set, 'nom', _METHOD_CLASSIFY)
+    classifier_condition = setup_classifier(f_learning_set, 'condition', _METHOD_CLASSIFY)
