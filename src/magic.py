@@ -53,6 +53,25 @@ class Magic:
         self.check_epouse()
         self.check_temoins()
 
+        persons = []
+        persons += self.root.findall('./epoux')
+        persons += self.root.findall('./epouse')
+        persons += self.root.findall('.//pere')
+        persons += self.root.findall('.//mere')
+        persons += self.root.findall('.//temoin')
+
+        for person in persons:
+            words = person_words(person)
+            for word in words:
+                if word[1] != 'other':
+                    continue
+                tag = best_classify(word[0])
+                print('{} -> {}'.format(word[0]['word'], tag))
+
+
+        # PLUSIEURS ITERATIONS !
+
+
     def check_pattern(self, root, tag, before=[], multiple=False):
         if(root.find(tag) is not None):
             return True
@@ -131,14 +150,6 @@ class Magic:
 
         self.check_pattern(epoux, 'naissance-lieu')
         self.check_pattern(epoux, 'pere/mere', ['naissance-lieu'], multiple=True)
-
-        words = person_words(epoux)
-        # FAIRE APRES TOUT LE RUN  ! PLUSIEUR ITERATIONS !
-        for word in words:
-            if word[1] != 'other':
-                continue
-            tag = best_classify(word[0])
-            print('{} -> {}'.format(word[0], tag))
 
     def check_epouse(self):
         self.check_pattern(self.root, 'epouse', ['epoux', 'date'])
