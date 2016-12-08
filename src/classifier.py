@@ -5,6 +5,14 @@ from sklearn.svm import LinearSVC, SVC, NuSVC
 from nltk.classify.scikitlearn import SklearnClassifier
 from nltk.metrics.scores import precision, recall
 
+from extract import Extractor
+from cst import _BUENOS_AIRES_TRAIN, _METHOD_CLASSIFY
+
+classifier_nom = None
+classifier_prenom = None
+classifier_condition = None
+
+
 class Classifier:
 
     def __init__(self, data=[]):
@@ -35,6 +43,9 @@ class Classifier:
         if(verbose):
             if(method == 'naive_bayes'):
                 self.classifier.show_most_informative_features(5)
+
+    def classify_prob(self, featureset):
+        return self.classifier.classify_many([featureset])[0]
 
     def accuracy(self):
         return nltk.classify.accuracy(self.classifier, self.test_set)
@@ -71,19 +82,8 @@ class Classifier:
     def setup_sets(self, target):
         train_set, test_set = self.split_dataset()
 
-        features = None
-        if(target == 'nom'):
-            features = nom_features
-        elif(target == 'prenom'):
-            features = prenom_features
-        elif(target == 'condition'):
-            features = condition_features
-
-        if(features is None):
-            return
-
-        self.train_set = nltk.classify.apply_features(features, train_set)
-        self.test_set = nltk.classify.apply_features(features, test_set)
+        self.train_set = setup_features(target, train_set)
+        self.test_set = setup_features(target, test_set)
 
     def split_dataset(self):
         size_data = len(self.data)
@@ -91,6 +91,21 @@ class Classifier:
         nb_train = int(size_data * 0.8)
         return self.data[:nb_train], self.data[nb_train:]
 
+
+
+def setup_features(target, set):
+    features = None
+    if (target == 'nom'):
+        features = nom_features
+    elif (target == 'prenom'):
+        features = prenom_features
+    elif (target == 'condition'):
+        features = condition_features
+
+    if (features is None):
+        return
+
+    return nltk.classify.apply_features(features, set)
 
 def nom_features(word):
     return {
@@ -125,3 +140,22 @@ def ratio_nb_uppercase(word):
 
 def is_first_uppercase(word):
     return word[0].isupper()
+
+def setup_classifier(filename, target, method='linearSVC', verbose=False):
+    ex = Extractor(filename)
+    words = ex.extract_personnes_words()
+
+    for i, item in enumerate(words):
+        if (item[1] != target):
+            words[i] = (item[0], 'other')
+
+    cl = Classifier(words)
+    cl.setup(target, method, verbose=verbose)
+    if (verbose):
+        cl.print_accuracy()
+        cl.print_precision_recall()
+    return cl
+
+classifier_prenom = setup_classifier(_BUENOS_AIRES_TRAIN, 'prenom', _METHOD_CLASSIFY)
+classifier_nom = setup_classifier(_BUENOS_AIRES_TRAIN, 'nom', _METHOD_CLASSIFY)
+classifier_condition = setup_classifier(_BUENOS_AIRES_TRAIN, 'condition', _METHOD_CLASSIFY)

@@ -1,3 +1,4 @@
+Work with python 3 only (not with python 2)
 
 apt-get install python3-pip
 pip3 install nltk
