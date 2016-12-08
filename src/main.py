@@ -4,7 +4,7 @@ import sys
 import getopt
 import re
 from magic import Magic
-from classifier import setup_classifiers
+from classifier import setup_classifiers, classifier_nom
 import logging
 import cst
 
@@ -52,7 +52,7 @@ def usage():
 
 def main(argv):
     try:
-        opts, args = getopt(argv, 'hetvl:', ['help', 'extract', 'tag', 'verbose', 'learning_set='])
+        opts, args = getopt.getopt(argv, 'hetvl:', ['help', 'extract', 'tag', 'verbose', 'learning_set='])
     except getopt.GetoptError as err:
         print(err)
         usage()
@@ -100,8 +100,11 @@ def main(argv):
             print('No learning set file specified')
             usage()
             sys.exit()
+        print(f_in)
+        print(f_out)
+        print(f_learning_set)
 
-        tag_multiple_actes(f_in, f_out)
+        tag_multiple_actes(f_in, f_out, f_learning_set)
 
 
 if __name__ == '__main__':

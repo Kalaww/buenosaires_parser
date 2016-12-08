@@ -6,7 +6,7 @@ from nltk.classify.scikitlearn import SklearnClassifier
 from nltk.metrics.scores import precision, recall
 
 from extract import Extractor
-from cst import _BUENOS_AIRES_TRAIN, _METHOD_CLASSIFY
+from cst import _METHOD_CLASSIFY
 
 classifier_nom = None
 classifier_prenom = None
@@ -122,7 +122,7 @@ def prenom_features(word):
         'length' : len(word['word']),
         'before' : word['before'],
         'after' : word['after'],
-        'n_upper' : ratio_nb_uppercase(word['word']),
+        'f_upper' : is_first_uppercase(word['word']),
         'after_tag' : word['after_tag'],
         'before_tag' : word['before_tag']
     }
@@ -132,7 +132,8 @@ def condition_features(word):
         'before' : word['before'],
         'after' : word['after'],
         'after_tag' : word['after_tag'],
-        'before_tag' : word['before_tag']
+        'before_tag' : word['before_tag'],
+        'word': word['word']
     }
 
 def ratio_nb_uppercase(word):
@@ -157,6 +158,68 @@ def setup_classifier(filename, target, method='linearSVC', verbose=False):
     return cl
 
 def setup_classifiers(f_learning_set):
+    global classifier_prenom, classifier_nom, classifier_condition
+    print('setting up classifier based on set in file {}'.format(f_learning_set))
     classifier_prenom = setup_classifier(f_learning_set, 'prenom', _METHOD_CLASSIFY)
     classifier_nom = setup_classifier(f_learning_set, 'nom', _METHOD_CLASSIFY)
     classifier_condition = setup_classifier(f_learning_set, 'condition', _METHOD_CLASSIFY)
+
+    classifier_prenom.print_accuracy()
+    classifier_prenom.print_precision_recall()
+
+    classifier_nom.print_accuracy()
+    classifier_nom.print_precision_recall()
+
+    classifier_condition.print_accuracy()
+    classifier_condition.print_precision_recall()
+
+
+def best_prob_classify(word):
+    prob_prenom = classifier_prenom.classify_prob(prenom_features(word))
+    prob_nom = classifier_nom.classify_prob(nom_features(word))
+    prob_condition = classifier_condition.classify_prob(condition_features(word))
+
+    max = 'other'
+    max_prob = 0.0
+    if(prob_prenom.prob('prenom') > prob_prenom.prob('other')):
+        max = 'prenom'
+        max_prob = prob_prenom.prob('prenom')
+    else:
+        max = 'other'
+        max_prob = prob_prenom.prob('other')
+
+    if(prob_nom.prob('nom') > prob_nom.prob('other')):
+        if(prob_nom.prob('nom') > max_prob):
+            max = 'nom'
+            max_prob = prob_nom.prob('nom')
+    else:
+        if(prob_nom.prob('other') > max_prob):
+            max = 'other'
+            max_prob = prob_nom.prob('other')
+
+    if(prob_condition.prob('condition') > prob_condition.prob('other')):
+        if(prob_condition.prob('condition') > max_prob):
+            max = 'condition'
+            max_prob = prob_condition.prob('condition')
+    else:
+        if(prob_condition.prob('other') > max_prob):
+            max = 'other'
+            max_prob = prob_condition.prob('other')
+
+    return max, max_prob
+
+
+def best_classify(word):
+    is_prenom = 1 if classifier_prenom.classify_prob(prenom_features(word)) == 'prenom' else 0
+    is_nom = 1 if classifier_nom.classify_prob(nom_features(word)) == 'nom' else 0
+    is_condition = 1 if classifier_condition.classify_prob(condition_features(word)) == 'condition' else 0
+
+    #print('{} {} {}'.format(is_prenom, is_nom, is_condition))
+    total = is_prenom + is_nom + is_condition
+    if total != 1 :
+        return 'other'
+    if is_prenom == 1 :
+        return 'prenom'
+    if is_nom == 1 :
+        return 'nom'
+    return 'condition'

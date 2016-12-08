@@ -4,7 +4,7 @@ import re
 import logging
 
 from extract import person_words
-from classifier import classifier_prenom, classifier_nom, classifier_condition, setup_features, nom_features, prenom_features, condition_features
+from classifier import best_classify
 
 class Magic:
 
@@ -62,13 +62,29 @@ class Magic:
 
         for person in persons:
             words = person_words(person)
-            for i, word in enumerate(words):
-                if word[1] != 'other':
-                    continue
-                word[1] = best_classify(word[0])
-                if i < len(words) -1 :
-                    words[i+1]['after_tag'] = word[1]
-                print('{} > {}'.format(word[0]['word'], word[1]))
+            for tmp in range(0, 2):
+                for i in range(0, len(words)):
+                    if words[i][1] != 'other':
+                        #print('{} > {}'.format(words[i][0]['word'], words[i][1]))
+                        continue
+                    predicted = best_classify(words[i][0])
+                    if predicted is not 'other':
+                        words[i] = (words[i][0], predicted)
+                        if i > 0 :
+                            features = {}
+                            for k, v in words[i-1][0].items():
+                                features[k] = v
+                            features['after_tag'] = words[i][1]
+                            words[i-1] = (features, words[i-1][1])
+                        if i < len(words) -1 :
+                            features = {}
+                            for k, v in words[i+1][0].items():
+                                features[k] = v
+                            features['before_tag'] = words[i][1]
+                            words[i+1] = (features, words[i+1][1])
+                    #print('{} > {}'.format(words[i][0]['word'], words[i][1]))
+            #for word in words:
+                #print('{} > {}'.format(word[0]['word'], word[1]))
 
 
 
@@ -212,52 +228,3 @@ class Magic:
 def extract_actes_from_xml(xml_tree):
     return [acte for acte in xml_tree.getroot().iter("ACTE")]
 
-
-def best_prob_classify(word):
-    prob_prenom = classifier_prenom.classify_prob(prenom_features(word))
-    prob_nom = classifier_nom.classify_prob(nom_features(word))
-    prob_condition = classifier_condition.classify_prob(condition_features(word))
-
-    max = 'other'
-    max_prob = 0.0
-    if(prob_prenom.prob('prenom') > prob_prenom.prob('other')):
-        max = 'prenom'
-        max_prob = prob_prenom.prob('prenom')
-    else:
-        max = 'other'
-        max_prob = prob_prenom.prob('other')
-
-    if(prob_nom.prob('nom') > prob_nom.prob('other')):
-        if(prob_nom.prob('nom') > max_prob):
-            max = 'nom'
-            max_prob = prob_nom.prob('nom')
-    else:
-        if(prob_nom.prob('other') > max_prob):
-            max = 'other'
-            max_prob = prob_nom.prob('other')
-
-    if(prob_condition.prob('condition') > prob_condition.prob('other')):
-        if(prob_condition.prob('condition') > max_prob):
-            max = 'condition'
-            max_prob = prob_condition.prob('condition')
-    else:
-        if(prob_condition.prob('other') > max_prob):
-            max = 'other'
-            max_prob = prob_condition.prob('other')
-
-    return max, max_prob
-
-
-def best_classify(word):
-    is_prenom = 1 if classifier_prenom.classify_prob(prenom_features(word)) == 'prenom' else 0
-    is_nom = 1 if classifier_nom.classify_prob(nom_features(word)) == 'nom' else 0
-    is_condition = 1 if classifier_condition.classify_prob(condition_features(word)) == 'condition' else 0
-
-    total = is_prenom + is_nom + is_condition
-    if total != 1 :
-        return 'other'
-    if is_prenom == 1 :
-        return 'prenom'
-    if is_nom == 1 :
-        return 'nom'
-    return 'condition'
