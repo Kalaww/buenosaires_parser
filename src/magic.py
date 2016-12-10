@@ -65,7 +65,6 @@ class Magic:
             for tmp in range(0, 2):
                 for i in range(0, len(words)):
                     if words[i][1] != 'other':
-                        #print('{} > {}'.format(words[i][0]['word'], words[i][1]))
                         continue
                     predicted = best_classify(words[i][0])
                     if predicted is not 'other':
@@ -82,9 +81,8 @@ class Magic:
                                 features[k] = v
                             features['before_tag'] = words[i][1]
                             words[i+1] = (features, words[i+1][1])
-                    #print('{} > {}'.format(words[i][0]['word'], words[i][1]))
-            #for word in words:
-                #print('{} > {}'.format(word[0]['word'], word[1]))
+            for word in words:
+                print('{} > {}'.format(word[0]['word'], word[1]))
 
 
 

@@ -7,4 +7,4 @@ _MATRIMONIOS_TAGGED = _DIR_DATA + 'matrimonios.tagged.xml'
 
 _LOG_FILE = _DIR_DATA + 'log.txt'
 
-_METHOD_CLASSIFY = 'linearSVC'
+_METHOD_CLASSIFY = 'naive_bayes'

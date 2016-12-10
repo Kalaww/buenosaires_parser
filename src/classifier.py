@@ -159,7 +159,7 @@ def setup_classifier(filename, target, method='linearSVC', verbose=False):
 
 def setup_classifiers(f_learning_set):
     global classifier_prenom, classifier_nom, classifier_condition
-    print('setting up classifier based on set in file {}'.format(f_learning_set))
+    print('setting up classifier based on data in file {}'.format(f_learning_set))
     classifier_prenom = setup_classifier(f_learning_set, 'prenom', _METHOD_CLASSIFY)
     classifier_nom = setup_classifier(f_learning_set, 'nom', _METHOD_CLASSIFY)
     classifier_condition = setup_classifier(f_learning_set, 'condition', _METHOD_CLASSIFY)
@@ -214,7 +214,6 @@ def best_classify(word):
     is_nom = 1 if classifier_nom.classify_prob(nom_features(word)) == 'nom' else 0
     is_condition = 1 if classifier_condition.classify_prob(condition_features(word)) == 'condition' else 0
 
-    #print('{} {} {}'.format(is_prenom, is_nom, is_condition))
     total = is_prenom + is_nom + is_condition
     if total != 1 :
         return 'other'

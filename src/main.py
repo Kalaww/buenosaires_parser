@@ -4,7 +4,7 @@ import sys
 import getopt
 import re
 from magic import Magic
-from classifier import setup_classifiers, classifier_nom
+from classifier import setup_classifiers
 import logging
 import cst
 
@@ -100,9 +100,6 @@ def main(argv):
             print('No learning set file specified')
             usage()
             sys.exit()
-        print(f_in)
-        print(f_out)
-        print(f_learning_set)
 
         tag_multiple_actes(f_in, f_out, f_learning_set)
 
