@@ -40,10 +40,6 @@ class Classifier:
         else:
             self.classifier = nltk.NaiveBayesClassifier.train(self.train_set)
 
-        if(verbose):
-            if(method == 'naive_bayes'):
-                self.classifier.show_most_informative_features(5)
-
     def classify_prob(self, featureset):
         return self.classifier.classify_many([featureset])[0]
 
@@ -114,7 +110,8 @@ def nom_features(word):
         'after' : word['after'],
         'n_upper' : ratio_nb_uppercase(word['word']),
         'after_tag' : word['after_tag'],
-        'before_tag' : word['before_tag']
+        'before_tag' : word['before_tag'],
+        'word': word['word']
     }
 
 def prenom_features(word):
@@ -124,11 +121,13 @@ def prenom_features(word):
         'after' : word['after'],
         'f_upper' : is_first_uppercase(word['word']),
         'after_tag' : word['after_tag'],
-        'before_tag' : word['before_tag']
+        'before_tag' : word['before_tag'],
+        'word': word['word']
     }
 
 def condition_features(word):
     return {
+        'length': len(word['word']),
         'before' : word['before'],
         'after' : word['after'],
         'after_tag' : word['after_tag'],
@@ -142,7 +141,7 @@ def ratio_nb_uppercase(word):
 def is_first_uppercase(word):
     return word[0].isupper()
 
-def setup_classifier(filename, target, method='linearSVC', verbose=False):
+def setup_classifier(filename, target, method, verbose=False):
     ex = Extractor(filename)
     words = ex.extract_personnes_words()
 
@@ -151,27 +150,22 @@ def setup_classifier(filename, target, method='linearSVC', verbose=False):
             words[i] = (item[0], 'other')
 
     cl = Classifier(words)
-    cl.setup(target, method, verbose=verbose)
-    if (verbose):
+    cl.setup(target, method)
+
+    if verbose :
+        print('Informations on \'{}\' classification'.format(target))
         cl.print_accuracy()
         cl.print_precision_recall()
+        if method == 'naive_bayes' :
+            cl.classifier.show_most_informative_features(5)
     return cl
 
-def setup_classifiers(f_learning_set):
+def setup_classifiers(f_learning_set, method, verbose=False):
     global classifier_prenom, classifier_nom, classifier_condition
-    print('setting up classifier based on data in file {}'.format(f_learning_set))
-    classifier_prenom = setup_classifier(f_learning_set, 'prenom', _METHOD_CLASSIFY)
-    classifier_nom = setup_classifier(f_learning_set, 'nom', _METHOD_CLASSIFY)
-    classifier_condition = setup_classifier(f_learning_set, 'condition', _METHOD_CLASSIFY)
-
-    classifier_prenom.print_accuracy()
-    classifier_prenom.print_precision_recall()
-
-    classifier_nom.print_accuracy()
-    classifier_nom.print_precision_recall()
-
-    classifier_condition.print_accuracy()
-    classifier_condition.print_precision_recall()
+    print('setting up classifiers based on data in file {}'.format(f_learning_set))
+    classifier_prenom = setup_classifier(f_learning_set, 'prenom', method, verbose)
+    classifier_nom = setup_classifier(f_learning_set, 'nom', method, verbose)
+    classifier_condition = setup_classifier(f_learning_set, 'condition', method, verbose)
 
 
 def best_prob_classify(word):

@@ -90,18 +90,17 @@ class Extractor:
 
 
 def person_words(node):
-    regex_split = '\W+'
     ok = ['nom', 'prenom', 'condition', 'naissance-lieu']
     words = []
     if node.text is not None:
-        words += [(w, 'other') for w in re.split(regex_split, node.text) if len(w) > 0]
+        words += [(word, 'other') for word in node.text.split()]
     for child in node:
         if child.tag is not None and child.tag in ok:
-            words += [(w, child.tag) for w in re.split(regex_split, child.text) if len(w) > 0]
+            words += [(word, child.tag) for word in child.text.split()]
         if child.tail is not None:
-            words += [(w, 'other') for w in re.split(regex_split, child.tail) if len(w) > 0]
+            words += [(word, 'other') for word in child.tail.split()]
     if node.tail is not None:
-        words += [(w, 'other') for w in re.split(regex_split, node.tail) if len(w) > 0]
+        words += [(word, 'other') for word in node.tail.split()]
 
     results = []
     for i, (word, tag) in enumerate(words):
@@ -125,6 +124,7 @@ def person_words(node):
              }, tag)
         )
     return results
+
 
 
 def last_word(str):

@@ -3,7 +3,6 @@ import xml.etree.ElementTree as ET
 import re
 import logging
 
-from extract import person_words
 from classifier import best_classify
 
 class Magic:
@@ -17,10 +16,11 @@ class Magic:
         'pere/mere': ('hij(o|a)( leg.tim(o|a)| natural)? del? (.+)(?<!,),? y de (.+?)(,|$)', (4, 5))
     }
 
-    def __init__(self, str, method='text'):
+    def __init__(self, str, method='text', verbose=False):
         self.root = None
         self._stop = False
         self._original_text = str
+        self.verbose = verbose
         if(method == 'file'):
             self.from_file(str)
         if(method == 'text'):
@@ -42,7 +42,9 @@ class Magic:
     def tostring(self):
         if(self._stop):
             return self._original_text
-        return ET.tostring(self.root, encoding='unicode', method='xml')
+        str = ET.tostring(self.root, encoding='unicode', method='html')
+        str = re.sub('\\&lt;', '<', str)
+        return re.sub('\\&gt;', '>', str)
 
     def run(self):
         if(self._stop):
@@ -61,30 +63,7 @@ class Magic:
         persons += self.root.findall('.//temoin')
 
         for person in persons:
-            words = person_words(person)
-            for tmp in range(0, 2):
-                for i in range(0, len(words)):
-                    if words[i][1] != 'other':
-                        continue
-                    predicted = best_classify(words[i][0])
-                    if predicted is not 'other':
-                        words[i] = (words[i][0], predicted)
-                        if i > 0 :
-                            features = {}
-                            for k, v in words[i-1][0].items():
-                                features[k] = v
-                            features['after_tag'] = words[i][1]
-                            words[i-1] = (features, words[i-1][1])
-                        if i < len(words) -1 :
-                            features = {}
-                            for k, v in words[i+1][0].items():
-                                features[k] = v
-                            features['before_tag'] = words[i][1]
-                            words[i+1] = (features, words[i+1][1])
-            for word in words:
-                print('{} > {}'.format(word[0]['word'], word[1]))
-
-
+            person_words(person)
 
     def check_pattern(self, root, tag, before=[], multiple=False):
         if(root.find(tag) is not None):
@@ -226,3 +205,78 @@ class Magic:
 def extract_actes_from_xml(xml_tree):
     return [acte for acte in xml_tree.getroot().iter("ACTE")]
 
+def person_words(node):
+    regex_split = '(.+?)((\W+)|$)'
+    words = []
+    if node.text is not None:
+        for m in re.finditer(regex_split, node.text):
+            words.append((m.group(1), 'other', m.group(3)))
+        words = setup_features_words(words)
+        if len(words) > 0 and len(node) > 0 :
+            words[-1][0]['after_tag'] = node[0].tag
+        node.text = classify(words)
+
+    for i in range(0, len(node)):
+        words = []
+        if node[i].tail is not None:
+            for m in re.finditer(regex_split, node[i].tail):
+                words.append((m.group(1), 'other', m.group(3)))
+            words = setup_features_words(words)
+            if len(words) > 0 and i+1 < len(node):
+                words[-1][0]['after_tag'] = node[i+1].tag
+            node[i].tail = classify(words)
+
+def classify(words):
+    for tmp in range(0, 2):
+        for i in range(0, len(words)):
+            if words[i][1] != 'other':
+                continue
+            predicted = best_classify(words[i][0])
+            if predicted is not 'other':
+                words[i] = (words[i][0], predicted, words[i][2])
+                if i > 0:
+                    features = {}
+                    for k, v in words[i - 1][0].items():
+                        features[k] = v
+                    features['after_tag'] = words[i][1]
+                    words[i - 1] = (features, words[i - 1][1], words[i-1][2])
+                if i < len(words) - 1:
+                    features = {}
+                    for k, v in words[i + 1][0].items():
+                        features[k] = v
+                    features['before_tag'] = words[i][1]
+                    words[i + 1] = (features, words[i + 1][1], words[i+1][2])
+
+    str = ''
+    for features, tag, next in words:
+        if tag != 'other' :
+            str += '<{}>{}</{}>'.format(tag, features['word'], tag)
+        else:
+            str += features['word']
+        if next is not None:
+            str += next
+    return str
+
+def setup_features_words(words):
+    results = []
+    for i, (word, tag, next) in enumerate(words):
+        before = ''
+        before_tag = 'other'
+        if i > 0:
+            before = words[i - 1][0]
+            before_tag = words[i - 1][1]
+        after = ''
+        after_tag = 'other'
+        if i < len(words) - 1:
+            after = words[i + 1][0]
+            after_tag = words[i + 1][1]
+        results.append(
+            ({
+                 'word': word,
+                 'before': before,
+                 'after': after,
+                 'before_tag': before_tag,
+                 'after_tag': after_tag
+             }, tag, next)
+        )
+    return results
