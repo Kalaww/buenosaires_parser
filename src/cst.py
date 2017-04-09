@@ -1,4 +1,4 @@
-_DIR_DATA = '../test/'
+_DIR_DATA = 'test/'
 
 _BUENOS_AIRES = _DIR_DATA + 'buenosaires.xml'
 _BUENOS_AIRES_TRAIN = _DIR_DATA + 'buenosaires.train.xml'

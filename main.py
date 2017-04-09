@@ -1,12 +1,12 @@
-# -*- coding: utf-8 -*-
 
 import sys
 import getopt
 import re
-from magic import Magic
-from classifier import setup_classifiers
+from src.magic import Magic
+from src.classifier import setup_classifiers
 import logging
-import cst
+
+import src.cst as cst
 
 def actes_from_file(filename):
     actes = []

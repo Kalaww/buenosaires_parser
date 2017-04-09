@@ -1,14 +1,15 @@
-# -*- coding: utf-8 -*-
+
 import xml.etree.ElementTree as ET
 import re
 import logging
 
-from classifier import best_classify
+
+from src.classifier import best_classify
 
 class Magic:
 
     regex = {
-        'date': ('((\d{1,2}-\d{1,2}-)?\d{4}) ?:', 1),
+        'date': ( '((\d{1,2}-\d{1,2}-)?\d{4}) ?:', 1),
         'epoux': ('(.*: ?|\d+\) )(.*?)(,)? con ', 2),
         'epouse': (' con (.+?)\.(?<!(Da.|Dn.))', 1),
         'temoins': ('Ts\.: (.+?)((?<!Dn|Da)|, \(f)\.', 1),
@@ -89,6 +90,9 @@ class Magic:
         else:
             text = target.tail
 
+        if text is None:
+            return False
+
         m = re.search(self.regex[tag][0], text)
 
         if(m is None):
@@ -161,6 +165,8 @@ class Magic:
         if(temoins is None):
             return
 
+        if temoins.text is None:
+            return
         splitted, str = self.split_temoins(temoins.text)
 
         i = 0

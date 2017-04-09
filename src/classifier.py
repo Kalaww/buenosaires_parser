@@ -5,8 +5,7 @@ from sklearn.svm import LinearSVC, SVC, NuSVC
 from nltk.classify.scikitlearn import SklearnClassifier
 from nltk.metrics.scores import precision, recall
 
-from extract import Extractor
-from cst import _METHOD_CLASSIFY
+from src.extract import Extractor
 
 classifier_nom = None
 classifier_prenom = None
